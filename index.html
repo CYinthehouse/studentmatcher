@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Matcher - TA Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        h2 {
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .selection-group {
+            margin-bottom: 30px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #666;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            background: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        select:hover {
+            border-color: #667eea;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+        }
+        
+        .learner-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .info-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .info-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #89f7fe, #66a6ff);
+            margin-right: 10px;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+        }
+        
+        #studentList {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            resize: vertical;
+            font-family: 'Segoe UI', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        #studentList:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+        }
+        
+        .instructions {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .instructions p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .matches {
+            margin-top: 30px;
+        }
+        
+        .match-group {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .match-group:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .match-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .match-students {
+            flex-grow: 1;
+            margin-left: 20px;
+            font-size: 1.1em;
+            color: #333;
+        }
+        
+        .match-students .student-name {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 0 5px;
+        }
+        
+        .study-hall-badge {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 15px;
+            white-space: nowrap;
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .summary h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .summary p {
+            color: #666;
+            margin: 5px 0;
+        }
+        
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .student-instructions {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        
+        .student-instructions h2 {
+            color: #333;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .instruction-step {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .instruction-step h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .question-list {
+            margin-left: 40px;
+            margin-top: 10px;
+        }
+        
+        .question-list li {
+            color: #555;
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        
+        .alarm-notice {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .alarm-notice h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .alarm-notice p {
+            color: #856404;
+            font-size: 1.1em;
+        }
+        
+        .confirm-action {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .confirm-action strong {
+            color: #155724;
+        }
+        
+        .study-hall-assignments {
+            margin-top: 30px;
+        }
+        
+        .hall-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .hall-group h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .hall-group .assigned-pairs {
+            color: #666;
+            margin-left: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .learner-info {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .btn-container {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-right: 0;
+            }
+            
+            .match-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .study-hall-badge {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Student Matcher Tool</h1>
+        
+        <!-- Page 1: Selection -->
+        <div id="page1" class="page active">
+            <div class="selection-group">
+                <label for="level">Select Student Level:</label>
+                <select id="level">
+                    <option value="">-- Choose a level --</option>
+                    <option value="Absolute Beginner">Absolute Beginner</option>
+                    <option value="Novice">Novice</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Advanced Beginner">Advanced Beginner</option>
+                </select>
+            </div>
+            
+            <div class="selection-group">
+                <h2>Learning Type Information</h2>
+                <div class="learner-info">
+                    <div class="info-card">
+                        <h3>😊 Casual Learner</h3>
+                        <p>Study Time: 20 minutes per day</p>
+                        <p>Focus: Basic concepts and gradual progress</p>
+                        <p>Ideal for: Students with busy schedules</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>🎯 Serious Learner</h3>
+                        <p>Study Time: 1+ hours per day</p>
+                        <p>Focus: Intensive learning and rapid progress</p>
+                        <p>Ideal for: Dedicated students with clear goals</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="selection-group">
+                <label for="learnerType">Select Learner Type:</label>
+                <select id="learnerType">
+                    <option value="">-- Choose a type --</option>
+                    <option value="Casual">Casual Learner (20 min/day)</option>
+                    <option value="Serious">Serious Learner (1+ hour/day)</option>
+                </select>
+            </div>
+            
+            <button class="btn" onclick="goToPage2()">Next: Add Students →</button>
+        </div>
+        
+        <!-- Page 2: Student Input and Matching -->
+        <div id="page2" class="page">
+            <div class="summary">
+                <h3>Selected Criteria</h3>
+                <p><strong>Level:</strong> <span id="selectedLevel"></span></p>
+                <p><strong>Type:</strong> <span id="selectedType"></span></p>
+            </div>
+            
+            <div class="instructions">
+                <p>📝 Enter student names below, one per line. Students will be randomly matched in pairs and automatically assigned to study halls.</p>
+            </div>
+            
+            <div class="selection-group">
+                <label for="studentList">Enter Student Names (one per line):</label>
+                <textarea id="studentList" placeholder="John Smith&#10;Jane Doe&#10;Mike Johnson&#10;Sarah Williams&#10;..."></textarea>
+            </div>
+            
+            <div class="btn-container">
+                <button class="btn btn-secondary" onclick="goToPage1()">← Back</button>
+                <button class="btn" onclick="matchAndAssignStudents()">Match & Assign to Study Halls 🎲</button>
+            </div>
+            
+            <div id="matchResults" class="matches"></div>
+        </div>
+        
+        <!-- Page 3: Study Hall Assignment and Instructions -->
+        <div id="page3" class="page">
+            <div class="summary">
+                <h3>Assignment Summary</h3>
+                <p><strong>Level:</strong> <span id="finalLevel"></span></p>
+                <p><strong>Type:</strong> <span id="finalType"></span></p>
+                <p><strong>Total Pairs/Groups:</strong> <span id="totalPairs"></span></p>
+            </div>
+            
+            <h2>✅ Study Hall Assignments Complete</h2>
+            <div id="studyHallAssignments"></div>
+            
+            <button class="btn btn-success" onclick="showStudentInstructions()">View Student Instructions 📋</button>
+            
+            <div id="studentInstructionsSection" style="display: none;">
+                <div class="student-instructions">
+                    <h2>📢 Instructions for Students</h2>
+                    
+                    <div class="alarm-notice">
+                        <h3>⏰ IMPORTANT: Set Your Alarm!</h3>
+                        <p>Please set an alarm for 10 minutes before your study session begins.</p>
+                        <p>Once your alarm is set and you've opened a chat with your partner, proceed to the activities below.</p>
+                    </div>
+                    
+                    <div class="instruction-step">
+                        <h3><span class="step-number">1</span> Connect with Your Partner (2 minutes)</h3>
+                        <p>Add each other as friends and open a message chat with your study partner.</p>
+                        <div class="confirm-action">
+                            <strong>✔️ After adding each other as friends, type "1" in the chat to confirm this step is complete.</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-step">
+                        <h3><span class="step-number">2</span> Ice Breaker Questions (6 minutes)</h3>
+                        <p>Take turns asking each other these questions:</p>
+                        <ol class="question-list">
+                            <li><strong>What made you want to learn Korean?</strong></li>
+                            <li><strong>The most difficult time you experienced in your life and how you overcame it.</strong></li>
+                        </ol>
+                        <p style="margin-top: 15px; color: #666;">💡 Listen carefully and be respectful of each other's stories.</p>
+                    </div>
+                    
+                    <div class="instruction-step">
+                        <h3><span class="step-number">3</span> Share Back (2 minutes)</h3>
+                        <p>After speaking with your partner, come back and share what you learned about each other.</p>
+                        <p style="margin-top: 10px; color: #e74c3c;">🔒 <strong>Privacy Reminder:</strong> Share only general insights without going into personal details to respect your partner's privacy.</p>
+                    </div>
+                </div>
+                
+                <div class="study-hall-assignments">
+                    <h2>📍 Study Hall Assignments</h2>
+                    <div id="finalAssignments"></div>
+                </div>
+                
+                <div class="btn-container">
+                    <button class="btn btn-secondary" onclick="backToMatching()">← Back to Matching</button>
+                    <button class="btn btn-secondary" onclick="printInstructions()">🖨️ Print Instructions</button>
+                    <button class="btn" onclick="startOver()">Start New Session</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentMatches = [];
+        let studyHallAssignments = {};
+        
+        function goToPage2() {
+            const level = document.getElementById('level').value;
+            const learnerType = document.getElementById('learnerType').value;
+            
+            if (!level || !learnerType) {
+                alert('Please select both a level and a learner type before proceeding.');
+                return;
+            }
+            
+            document.getElementById('selectedLevel').textContent = level;
+            document.getElementById('selectedType').textContent = learnerType + (learnerType === 'Casual' ? ' (20 min/day)' : ' (1+ hour/day)');
+            
+            document.getElementById('page1').classList.remove('active');
+            document.getElementById('page2').classList.add('active');
+        }
+        
+        function goToPage1() {
+            document.getElementById('page2').classList.remove('active');
+            document.getElementById('page1').classList.add('active');
+            document.getElementById('matchResults').innerHTML = '';
+        }
+        
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        function matchAndAssignStudents() {
+            const studentText = document.getElementById('studentList').value.trim();
+            
+            if (!studentText) {
+                alert('Please enter at least 2 student names to create matches.');
+                return;
+            }
+            
+            const students = studentText.split('\n')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+            
+            if (students.length < 2) {
+                alert('Please enter at least 2 student names to create matches.');
+                return;
+            }
+            
+            // Create matches
+            const shuffled = shuffleArray(students);
+            const matches = [];
+            
+            for (let i = 0; i < shuffled.length; i += 2) {
+                if (i === shuffled.length - 3 && shuffled.length % 2 === 1) {
+                    // Last three students form a group
+                    matches.push([shuffled[i], shuffled[i + 1], shuffled[i + 2]]);
+                    break;
+                } else if (i + 1 < shuffled.length) {
+                    // Regular pair
+                    matches.push([shuffled[i], shuffled[i + 1]]);
+                }
+            }
+            
+            currentMatches = matches;
+            
+            // Automatically assign to study halls
+            studyHallAssignments = {};
+            matches.forEach((match, index) => {
+                // Distribute evenly across 7 study halls
+                const hallNumber = (index % 7) + 1;
+                if (!studyHallAssignments[hallNumber]) {
+                    studyHallAssignments[hallNumber] = [];
+                }
+                studyHallAssignments[hallNumber].push(match);
+            });
+            
+            displayMatchesWithHalls(matches);
+        }
+        
+        function displayMatchesWithHalls(matches) {
+            const resultsDiv = document.getElementById('matchResults');
+            
+            if (matches.length === 0) {
+                resultsDiv.innerHTML = '<p>No matches created.</p>';
+                return;
+            }
+            
+            let html = '<h2>✨ Matched Pairs & Study Hall Assignments</h2>';
+            
+            matches.forEach((match, index) => {
+                const matchNumber = index + 1;
+                const hallNumber = (index % 7) + 1;
+                const studentsHtml = match.map(s => `<span class="student-name">${s}</span>`).join(' & ');
+                
+                html += `
+                    <div class="match-group">
+                        <div class="match-number">${matchNumber}</div>
+                        <div class="match-students">
+                            ${studentsHtml}
+                            ${match.length === 3 ? ' <em>(Group of 3)</em>' : ''}
+                        </div>
+                        <span class="study-hall-badge">Study Hall ${hallNumber}</span>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <button class="btn" onclick="matchAndAssignStudents()">Re-shuffle & Re-assign 🔄</button>
+                <button class="btn btn-secondary" onclick="goToFinalPage()">View Final Assignments →</button>
+            `;
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function goToFinalPage() {
+            if (currentMatches.length === 0) {
+                alert('Please create matches first.');
+                return;
+            }
+            
+            // Set summary information
+            document.getElementById('finalLevel').textContent = document.getElementById('selectedLevel').textContent;
+            document.getElementById('finalType').textContent = document.getElementById('selectedType').textContent;
+            document.getElementById('totalPairs').textContent = currentMatches.length;
+            
+            // Display organized study hall assignments
+            let assignmentHtml = '';
+            for (let hall = 1; hall <= 7; hall++) {
+                if (studyHallAssignments[hall] && studyHallAssignments[hall].length > 0) {
+                    assignmentHtml += `
+                        <div class="hall-group">
+                            <h4>📍 Study Hall ${hall}</h4>
+                            <div class="assigned-pairs">
+                    `;
+                    
+                    studyHallAssignments[hall].forEach(group => {
+                        assignmentHtml += `<p>• ${group.join(' & ')}</p>`;
+                    });
+                    
+                    assignmentHtml += `
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            document.getElementById('studyHallAssignments').innerHTML = assignmentHtml;
+            
+            // Switch to page 3
+            document.getElementById('page2').classList.remove('active');
+            document.getElementById('page3').classList.add('active');
+        }
+        
+        function showStudentInstructions() {
+            // Generate final assignments display (same as above)
+            let finalHtml = '';
+            for (let hall = 1; hall <= 7; hall++) {
+                if (studyHallAssignments[hall] && studyHallAssignments[hall].length > 0) {
+                    finalHtml += `
+                        <div class="hall-group">
+                            <h4>📍 Study Hall ${hall}</h4>
+                            <div class="assigned-pairs">
+                    `;
+                    
+                    studyHallAssignments[hall].forEach(group => {
+                        finalHtml += `<p>• ${group.join(' & ')}</p>`;
+                    });
+                    
+                    finalHtml += `
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            document.getElementById('finalAssignments').innerHTML = finalHtml;
+            document.getElementById('studentInstructionsSection').style.display = 'block';
+            
+            // Scroll to instructions
+            document.getElementById('studentInstructionsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function backToMatching() {
+            document.getElementById('page3').classList.remove('active');
+            document.getElementById('page2').classList.add('active');
+            document.getElementById('studentInstructionsSection').style.display = 'none';
+        }
+        
+        function printInstructions() {
+            window.print();
+        }
+        
+        function startOver() {
+            document.getElementById('level').value = '';
+            document.getElementById('learnerType').value = '';
+            document.getElementById('studentList').value = '';
+            document.getElementById('matchResults').innerHTML = '';
+            document.getElementById('studyHallAssignments').innerHTML = '';
+            document.getElementById('studentInstructionsSection').style.display = 'none';
+            currentMatches = [];
+            studyHallAssignments = {};
+            
+            document.getElementById('page3').classList.remove('active');
+            document.getElementById('page2').classList.remove('active');
+            document.getElementById('page1').classList.add('active');
+        }
+    </script>
+</body>
+</html>
